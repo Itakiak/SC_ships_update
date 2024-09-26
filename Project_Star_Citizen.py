@@ -5,7 +5,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from tqdm import tqdm  # Importer tqdm
 import json
 
-with open("credentials.json", "r") as f:
+with open("credentials.json", "r", encoding='utf-8') as f:
     credentials = json.load(f)
 
 base_url = "https://api.star-citizen.wiki/api/v3/vehicles?page="
