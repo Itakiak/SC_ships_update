@@ -2,8 +2,7 @@ import pandas as pd
 import requests
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from tqdm import tqdm  # Importer tqdm
-import json
+from tqdm import tqdm
 
 with open("credentials.json", "r", encoding='utf-8') as f:
     credentials = json.load(f)
