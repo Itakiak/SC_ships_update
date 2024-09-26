@@ -51,7 +51,7 @@ for name in vehicle_names:
 df = pd.DataFrame(vehicle_data)
 
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name('star-citizen-ships-d2b0ff5a2ca4.json', scope)
+creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials, scope)
 client = gspread.authorize(creds)
 
 spreadsheet = client.open("Star citizen - ships")
