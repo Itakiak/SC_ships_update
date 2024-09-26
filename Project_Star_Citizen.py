@@ -2,17 +2,20 @@ import pandas as pd
 import requests
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+from tqdm import tqdm  # Importer tqdm
 
 base_url = "https://api.star-citizen.wiki/api/v3/vehicles?page="
 
-all_data = [
-    [item.get("name") for item in requests.get(f"{base_url}{page}").json().get("data", [])]
-    for page in range(1, 16)
-    if requests.get(f"{base_url}{page}").status_code == 200
-]
+# Récupérer les noms de vaisseaux
+all_data = []
+for page in tqdm(range(1, 16), desc="Récupération des vaisseaux", unit="page"):
+    response = requests.get(f"{base_url}{page}")
+    if response.status_code == 200:
+        page_data = response.json().get("data", [])
+        names = [item.get("name") for item in page_data]
+        all_data.extend(names)
 
-all_data = [name for sublist in all_data for name in sublist]
-
+# Convertir en DataFrame
 ships = pd.DataFrame(all_data, columns=["name"])
 
 def get_vehicle_characteristics(name):
@@ -23,7 +26,8 @@ def get_vehicle_characteristics(name):
 vehicle_names = ships['name'].tolist()
 vehicle_data = []
 
-for name in vehicle_names:
+# Récupérer les caractéristiques des vaisseaux
+for name in tqdm(vehicle_names, desc="Récupération des caractéristiques des vaisseaux", unit="vaisseau"):
     if name in ["Carrack Expedition w/C8X", "Carrack w/C8X", "C8 Pisces"]:
         continue
     
@@ -50,6 +54,7 @@ for name in vehicle_names:
 
 df = pd.DataFrame(vehicle_data)
 
+# Configuration pour Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials, scope)
 client = gspread.authorize(creds)
