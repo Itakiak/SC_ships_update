@@ -1,0 +1,16 @@
+# Ignorer les fichiers compilés
+*.exe
+*.dll
+
+# Ignorer les fichiers logs
+*.log
+
+# Ignorer les dossiers spécifiques
+/node_modules
+/dist
+
+# Ignorer les fichiers de config locaux
+.env
+
+# Ignorer les fichiers JSON
+*.json
