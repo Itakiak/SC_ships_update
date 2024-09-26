@@ -12,7 +12,7 @@ base_url = "https://api.star-citizen.wiki/api/v3/vehicles?page="
 
 # Récupérer les noms de vaisseaux
 all_data = []
-for page in tqdm(range(1, 16), desc="Récupération des vaisseaux", unit="page"):
+for page in tqdm(range(1, 16), desc="Loading ships", unit="page"):
     response = requests.get(f"{base_url}{page}")
     if response.status_code == 200:
         page_data = response.json().get("data", [])
@@ -31,7 +31,7 @@ vehicle_names = ships['name'].tolist()
 vehicle_data = []
 
 # Récupérer les caractéristiques des vaisseaux
-for name in tqdm(vehicle_names, desc="Récupération des caractéristiques des vaisseaux", unit="vaisseau"):
+for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau"):
     if name in ["Carrack Expedition w/C8X", "Carrack w/C8X", "C8 Pisces"]:
         continue
     
