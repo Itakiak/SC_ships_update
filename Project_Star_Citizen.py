@@ -44,14 +44,14 @@ for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau"):
             "HP bouclier": data.get("shield_hp"),
             "Cargo": data.get("cargo_capacity"),
             "Capa. rés. quantum": data.get("quantum", {}).get("quantum_fuel_capacity"),
-            "crew minimum": data.get("crew", {}).get("min"),
-            "crew maximum": data.get("crew", {}).get("max"),
+            "Crew min": data.get("crew", {}).get("min"),
+            "Crew max": data.get("crew", {}).get("max"),
             "Type": data.get("type", {}).get("en_EN"),
             "Classe": data.get("production_status", {}).get("en_EN"),
-            "Classe de taille": data.get("size_class"),
+            "Size class": data.get("size_class"),
             "Vitesse SCM": data.get("speed", {}).get("scm"),
             "Vitesse max": data.get("speed", {}).get("max"),
-            "Prix de vente": data.get("msrp"),
+            "Prix ($)": data.get("msrp"),
             "lien du pledge": data.get("pledge_url")
         }
         vehicle_data.append(vehicle_info)
