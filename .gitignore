@@ -14,3 +14,5 @@
 
 # Ignorer les fichiers JSON
 *.json
+
+/data
