@@ -8,11 +8,10 @@
 # Ignorer les dossiers spécifiques
 /node_modules
 /dist
+/data
 
 # Ignorer les fichiers de config locaux
 .env
 
 # Ignorer les fichiers JSON
 *.json
-
-/data
