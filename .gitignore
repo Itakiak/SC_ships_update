@@ -9,6 +9,7 @@
 /node_modules
 /dist
 /data
+/libs
 
 # Ignorer les fichiers de config locaux
 .env
