@@ -42,7 +42,7 @@ sys.stdout.write("\r" + " " * 30 + "\r")
 sys.stdout.flush()
 
 # Afficher uniquement le total des pages chargées
-print(f"Total des pages chargées : {page - 1}")
+print(f"Pages chargées : {page - 1}")
 
 # Convertir en DataFrame
 ships = pd.DataFrame(all_data, columns=["name"])
