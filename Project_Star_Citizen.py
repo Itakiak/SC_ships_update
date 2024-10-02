@@ -36,9 +36,13 @@ while True:
     
     page += 1
     time.sleep(0.1)  # Petit délai pour simuler un chargement plus visible
-    
-# Afficher le nombre final de pages chargées
-print(f"\nTotal des pages chargées : {page - 1}")
+
+# Effacer la ligne de progression
+sys.stdout.write("\r" + " " * 30 + "\r")
+sys.stdout.flush()
+
+# Afficher uniquement le total des pages chargées
+print(f"Total des pages chargées : {page - 1}")
 
 # Convertir en DataFrame
 ships = pd.DataFrame(all_data, columns=["name"])
