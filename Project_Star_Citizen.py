@@ -52,7 +52,7 @@ for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau"):
             "Nom du vaisseau": data.get("name"),
             "HP vaisseau": data.get("health"),
             "HP bouclier": data.get("shield_hp"),
-            "Cargo": data.get("cargo_capacity"),
+            "Capa. cargo": data.get("cargo_capacity"),
             "Capa. quantum": data.get("quantum", {}).get("quantum_fuel_capacity"),
             "Crew min": data.get("crew", {}).get("min"),
             "Crew max": data.get("crew", {}).get("max"),
@@ -76,7 +76,9 @@ client = gspread.authorize(creds)
 spreadsheet = client.open("Star citizen - ships")
 worksheet = spreadsheet.get_worksheet(0)
 
+df = df.astype(object)  # Convertir tout le DataFrame en type 'object' pour empêcher de futures erreurs
 df.fillna("/", inplace=True)
+
 data_to_insert = [df.columns.values.tolist()] + df.values.tolist()
 worksheet.clear()
-worksheet.update('A1', data_to_insert)
+worksheet.update(range_name='A1', values=data_to_insert)
