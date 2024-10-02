@@ -4,6 +4,8 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from tqdm import tqdm
 import json
+import sys
+import time
 
 with open("credentials.json", "r", encoding='utf-8') as f:
     credentials = json.load(f)
@@ -27,7 +29,13 @@ while True:
 
     names = [item.get("name") for item in page_data]
     all_data.extend(names)
+    
+    # Afficher le nombre de pages chargées sur une seule ligne
+    sys.stdout.write(f"\rPages chargées : {page}")
+    sys.stdout.flush()
+    
     page += 1
+    time.sleep(0.1)  # Petit délai pour simuler un chargement plus visible
 
 # Convertir en DataFrame
 ships = pd.DataFrame(all_data, columns=["name"])
