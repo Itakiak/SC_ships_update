@@ -36,6 +36,9 @@ while True:
     
     page += 1
     time.sleep(0.1)  # Petit délai pour simuler un chargement plus visible
+    
+# Afficher le nombre final de pages chargées
+print(f"\nTotal des pages chargées : {page - 1}")
 
 # Convertir en DataFrame
 ships = pd.DataFrame(all_data, columns=["name"])
@@ -60,7 +63,7 @@ for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau"):
             "Nom du vaisseau": data.get("name"),
             "HP vaisseau": data.get("health"),
             "HP bouclier": data.get("shield_hp"),
-            "Capa. cargo": data.get("cargo_capacity"),
+            "Cargo": data.get("cargo_capacity"),
             "Capa. quantum": data.get("quantum", {}).get("quantum_fuel_capacity"),
             "Crew min": data.get("crew", {}).get("min"),
             "Crew max": data.get("crew", {}).get("max"),
