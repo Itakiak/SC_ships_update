@@ -12,12 +12,22 @@ base_url = "https://api.star-citizen.wiki/api/v3/vehicles?page="
 
 # Récupérer les noms de vaisseaux
 all_data = []
-for page in tqdm(range(1, 16), desc="Loading ships", unit="page"):
+page = 1
+
+while True:
     response = requests.get(f"{base_url}{page}")
-    if response.status_code == 200:
-        page_data = response.json().get("data", [])
-        names = [item.get("name") for item in page_data]
-        all_data.extend(names)
+    
+    if response.status_code != 200:
+        break
+    
+    page_data = response.json().get("data", [])
+    
+    if not page_data:
+        break  # Arrêter si aucune donnée n'est renvoyée
+
+    names = [item.get("name") for item in page_data]
+    all_data.extend(names)
+    page += 1
 
 # Convertir en DataFrame
 ships = pd.DataFrame(all_data, columns=["name"])
@@ -43,7 +53,7 @@ for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau"):
             "HP vaisseau": data.get("health"),
             "HP bouclier": data.get("shield_hp"),
             "Cargo": data.get("cargo_capacity"),
-            "Capa. rés. quantum": data.get("quantum", {}).get("quantum_fuel_capacity"),
+            "Capa. quantum": data.get("quantum", {}).get("quantum_fuel_capacity"),
             "Crew min": data.get("crew", {}).get("min"),
             "Crew max": data.get("crew", {}).get("max"),
             "Type": data.get("type", {}).get("en_EN"),
