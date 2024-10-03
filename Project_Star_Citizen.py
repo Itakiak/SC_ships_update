@@ -77,7 +77,7 @@ for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau"):
             "Vitesse SCM": data.get("speed", {}).get("scm"),
             "Vitesse max": data.get("speed", {}).get("max"),
             "Où acheter ?": [],
-            "Prix (aUEC)": [],
+            "Prix (aUEC)": 0,
             "Prix ($)": data.get("msrp"),
             "lien du pledge": data.get("pledge_url"),
         }
@@ -87,12 +87,12 @@ for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau"):
             shop_name = shop.get("name_raw", "")
             for item in shop.get("items", []):
                 base_price = item.get("base_price", 0)
+                if vehicle_info["Prix (aUEC)"] == 0:  # Ne garder que le premier prix trouvé
+                    vehicle_info["Prix (aUEC)"] = base_price
                 vehicle_info["Où acheter ?"].append(shop_name)
-                vehicle_info["Prix (aUEC)"].append(base_price)
 
-        # Combiner les valeurs des magasins et prix en chaînes
+        # Combiner les endroits d'achat
         vehicle_info["Où acheter ?"] = ', '.join(vehicle_info["Où acheter ?"])
-        vehicle_info["Prix (aUEC)"] = ', '.join(map(str, vehicle_info["Prix (aUEC)"]))
 
         vehicle_data.append(vehicle_info)
 
