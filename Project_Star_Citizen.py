@@ -76,11 +76,20 @@ for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau"):
             "Size class": data.get("size_class"),
             "Vitesse SCM": data.get("speed", {}).get("scm"),
             "Vitesse max": data.get("speed", {}).get("max"),
-            "Où acheter ?": data.get("shops", {}).get("name_raw"),
-            "Prix (aUEC)": data.get("shops", {}).get("items", {}).get("base_price"),
+            "Où acheter ?": [],
+            "Prix (aUEC)": [],
             "Prix ($)": data.get("msrp"),
             "lien du pledge": data.get("pledge_url")
         }
+
+        # Parcourir les shops
+        for shop in data.get("shops", []):
+            shop_name = shop.get("name_raw", "")
+            for item in shop.get("items", []):
+                base_price = item.get("base_price", 0)
+                vehicle_info["Où acheter ?"].append(shop_name)
+                vehicle_info["Prix (aUEC)"].append(base_price)
+                
         vehicle_data.append(vehicle_info)
 
 df = pd.DataFrame(vehicle_data)
