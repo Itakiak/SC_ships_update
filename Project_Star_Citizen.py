@@ -91,8 +91,8 @@ for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau"):
                     vehicle_info["Prix (aUEC)"] = base_price
                 vehicle_info["Où acheter ?"].append(shop_name)
 
-        # Combiner les endroits d'achat
-        vehicle_info["Où acheter ?"] = ', '.join(vehicle_info["Où acheter ?"])
+        # Combiner les valeurs des magasins en chaîne séparée par " / "
+        vehicle_info["Où acheter ?"] = ' / '.join(vehicle_info["Où acheter ?"])
 
         vehicle_data.append(vehicle_info)
 
