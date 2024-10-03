@@ -76,6 +76,8 @@ for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau"):
             "Size class": data.get("size_class"),
             "Vitesse SCM": data.get("speed", {}).get("scm"),
             "Vitesse max": data.get("speed", {}).get("max"),
+            "Où acheter ?": data.get("shops", {}).get("name_raw"),
+            "Prix (aUEC)": data.get("shops", {}).get("items", {}).get("base_price"),
             "Prix ($)": data.get("msrp"),
             "lien du pledge": data.get("pledge_url")
         }
