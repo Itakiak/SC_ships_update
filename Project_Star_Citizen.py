@@ -106,7 +106,7 @@ constructeurs_abreviation = {
     "Anvil Aerospace": "Anvil",
     "Aegis Dynamics": "Aegis",
     "Drake Interplanetary": "Drake",
-    # Ajoute d'autres constructeurs ici
+    "Origin Jumpworks": "Origin"
 }
 
 # Remplacer les noms des constructeurs par leurs abréviations
