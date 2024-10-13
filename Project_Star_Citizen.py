@@ -56,7 +56,7 @@ vehicle_names = ships['name'].tolist()
 vehicle_data = []
 
 # Récupérer les caractéristiques des vaisseaux
-for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau"):
+for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau(x)"):
     if name in ["Carrack Expedition w/C8X", "Carrack w/C8X", "C8 Pisces"]:
         continue
     
@@ -65,6 +65,7 @@ for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau"):
         data = characteristics["data"]
         vehicle_info = {
             "Nom du vaisseau": data.get("name"),
+            "Constructeur": data.get("manufacturer", {}).get("name"),
             "HP vaisseau": data.get("health"),
             "HP bouclier": data.get("shield_hp"),
             "Cargo": data.get("cargo_capacity"),
