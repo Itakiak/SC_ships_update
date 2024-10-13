@@ -99,6 +99,19 @@ for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau(x)"):
 
 df = pd.DataFrame(vehicle_data)
 
+# Dictionnaire de remplacement des noms des constructeurs
+constructeurs_abreviation = {
+    "Roberts Space Industries": "RSI",
+    "Musashi Industrial and Starflight Concern": "MISC",
+    "Anvil Aerospace": "Anvil",
+    "Aegis Dynamics": "Aegis",
+    "Drake Interplanetary": "Drake",
+    # Ajoute d'autres constructeurs ici
+}
+
+# Remplacer les noms des constructeurs par leurs abréviations
+df['Constructeur'] = df['Constructeur'].replace(constructeurs_abreviation)
+
 # Configuration pour Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials, scope)
