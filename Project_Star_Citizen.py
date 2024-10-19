@@ -76,7 +76,7 @@ for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau(x)"):
             "Classe": data.get("production_status", {}).get("en_EN"),
             "Size class": data.get("size_class"),
             "Vitesse SCM": data.get("speed", {}).get("scm"),
-            "Vitesse max": data.get("speed", {}).get("max"),
+            "Vitesse NAV": data.get("speed", {}).get("max"),
             "Où acheter ?": [],
             "Prix (aUEC)": 0,
             "Prix ($)": data.get("msrp"),
@@ -106,7 +106,7 @@ constructeurs_abreviation = {
     "Anvil Aerospace": "Anvil",
     "Aegis Dynamics": "Aegis",
     "Drake Interplanetary": "Drake",
-    "Origin Jumpworks": "Origin",
+    "Origin Jumpworks": "Origin"
 }
 
 # Remplacer les noms des constructeurs par leurs abréviations
