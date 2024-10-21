@@ -64,13 +64,12 @@ for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau(x)"):
     if characteristics and "data" in characteristics:
         data = characteristics["data"]
         vehicle_info = {
-            "Nom du vaisseau": data.get("name"),
+            "Nom du vaisseau": f'=HYPERLINK("{data.get("pledge_url")}", "{data.get("name")}")',
             "Constructeur": data.get("manufacturer", {}).get("name"),
             "HP vaisseau": data.get("health"),
             "HP bouclier": data.get("shield_hp"),
             "Cargo": data.get("cargo_capacity"),
             "Capa. quantum": data.get("quantum", {}).get("quantum_fuel_capacity"),
-            # Logique pour la colonne "Crew"
             "Crew": str(data.get("crew", {}).get("max", data.get("crew", {}).get("min", "/"))) if data.get("crew", {}).get("max") else str(data.get("crew", {}).get("min", "/")),
             "Type": data.get("type", {}).get("en_EN"),
             "Classe": data.get("production_status", {}).get("en_EN"),
@@ -80,7 +79,6 @@ for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau(x)"):
             "Où acheter ?": [],
             "Prix (aUEC)": 0,
             "Prix ($)": data.get("msrp"),
-            "lien du pledge": data.get("pledge_url"),
         }
 
         # Parcourir les shops
