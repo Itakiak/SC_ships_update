@@ -70,8 +70,8 @@ for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau(x)"):
             "HP bouclier": data.get("shield_hp"),
             "Cargo": data.get("cargo_capacity"),
             "Capa. quantum": data.get("quantum", {}).get("quantum_fuel_capacity"),
-            "Crew min": data.get("crew", {}).get("min"),
-            "Crew max": data.get("crew", {}).get("max"),
+            # Logique pour la colonne "Crew"
+            "Crew": str(data.get("crew", {}).get("max", data.get("crew", {}).get("min", "/"))) if data.get("crew", {}).get("max") else str(data.get("crew", {}).get("min", "/")),
             "Type": data.get("type", {}).get("en_EN"),
             "Classe": data.get("production_status", {}).get("en_EN"),
             "Size class": data.get("size_class"),
