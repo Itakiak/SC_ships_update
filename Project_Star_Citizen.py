@@ -64,7 +64,7 @@ for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau(x)"):
     if characteristics and "data" in characteristics:
         data = characteristics["data"]
         vehicle_info = {
-            "Nom du vaisseau": f'=HYPERLINK("{data.get("pledge_url", "")}", "{data.get("name")}")' if data.get("pledge_url") else data.get("name"),
+            "Nom du vaisseau": f'=HYPERLINK("{data.get("pledge_url")}", "{data.get("name")}")',
             "Constructeur": data.get("manufacturer", {}).get("name"),
             "HP vaisseau": data.get("health"),
             "HP bouclier": data.get("shield_hp"),
