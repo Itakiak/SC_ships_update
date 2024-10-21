@@ -123,4 +123,4 @@ df.fillna("/", inplace=True)
 
 data_to_insert = [df.columns.values.tolist()] + df.values.tolist()
 worksheet.clear()
-worksheet.update(range_name='A1', values=data_to_insert)
+worksheet.update(range_name='A1', values=data_to_insert, value_input_option='USER_ENTERED')
