@@ -2,7 +2,7 @@ import requests
 import os
 
 # URL du fichier Python sur GitHub
-url = "https://raw.githubusercontent.com/[Your GitHub username]/[your_repo]/main/[your_file].py"
+url = "https://raw.githubusercontent.com/[Your GitHub username]/[your_repo]/refs/heads/main/[your_file].py"
 
 # Télécharger les credentials depuis Google Drive
 drive_file_id = "your_drive_file_id"  # Remplace par l'ID de ton fichier JSON
