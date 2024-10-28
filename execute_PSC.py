@@ -1,7 +1,6 @@
 import requests
 import os
 
-# URL du fichier Python sur GitHub
 url = "https://raw.githubusercontent.com/[Your GitHub username]/[your_repo]/refs/heads/main/[your_file].py"
 
 # Télécharger les credentials depuis Google Drive
@@ -15,18 +14,21 @@ if response.status_code == 200:
     with open("credentials.json", "wb") as f:
         f.write(response.content)
 
-    # Récupérer le contenu du fichier Python
-    response = requests.get(url)
-
-    if response.status_code == 200:
+    # Récupérer et exécuter Project_Star_Citizen.py
+    response_main = requests.get(url_main_script)
+    if response_main.status_code == 200:
         with open("temp_script.py", "w", encoding="utf-8") as file:
-            file.write(response.text)
+            file.write(response_main.text)
 
-        # Exécuter le fichier temporaire
+        # Exécuter Project_Star_Citizen.py
         os.system("python temp_script.py")
+    else:
+        print(f"Erreur de récupération de Project_Star_Citizen.py: {response_main.status_code}")
+
 else:
     print(f"Erreur de récupération des credentials: {response.status_code}")
 
-# Supprimer les fichiers temporaires après l'exécution
 os.remove("temp_script.py")
 os.remove("credentials.json")
+
+print("Script executed successfully.")
