@@ -1,106 +1,59 @@
-import requests
-import json
-from tqdm import tqdm
-import time
-import sys
+from googleapiclient.discovery import build
+from google.oauth2 import service_account
 from notion_client import Client
+import time
 
-# URL de l'API Star Citizen
-base_url = "https://api.star-citizen.wiki/api/v3/vehicles?page="
+# Configuration
+SPREADSHEET_ID = '1GJH3QmXWMRwRt0_VuUA6e4C-s23h7SlibBCHXAldYGc'  # ID de Google Sheets
+RANGE_NAME = 'Feuille 1!A:Z'  # Récupère toutes les colonnes non-vides
+NOTION_DATABASE_ID = 'dc5b813d83e640f2abb7e70634fee52f'  # ID de la base de données Notion
 
-# Configuration Notion
-notion_token = "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"
-database_id = "dc5b813d-83e6-40f2-abb7-e70634fee52f"  # Vérifie que c'est bien le bon format (UUID)
-notion = Client(auth=notion_token)
+# Connexion à l'API Google Sheets avec les credentials téléchargés
+creds = service_account.Credentials.from_service_account_file(
+    "credentials.json",
+    scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"]
+)
+sheets_service = build('sheets', 'v4', credentials=creds)
 
-# Fonction pour récupérer les caractéristiques d'un véhicule
-def get_vehicle_characteristics(name):
-    url = f"https://api.star-citizen.wiki/api/v3/vehicles/{name}?include=components,shops"
-    response = requests.get(url)
-    return response.json() if response.status_code == 200 else None
+# Connexion à l'API Notion
+notion = Client(auth="ton_token_notion")
 
-# Récupération des noms de vaisseaux
-all_data = []
-page = 1
+def fetch_data_from_google_sheets():
+    sheet = sheets_service.spreadsheets()
+    result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME).execute()
+    values = result.get('values', [])
+    if not values:
+        return [], []
+    headers = values[0]  # Première ligne : en-têtes de colonne
+    rows = values[1:]    # Lignes suivantes : données
+    return headers, rows
 
-while True:
-    response = requests.get(f"{base_url}{page}")
-    if response.status_code != 200:
-        break
-    
-    page_data = response.json().get("data", [])
-    if not page_data:
-        break
-
-    names = [item.get("name") for item in page_data]
-    all_data.extend(names)
-
-    sys.stdout.write(f"\rPages chargées : {page}")
-    sys.stdout.flush()
-
-    page += 1
-    time.sleep(0.1)
-
-sys.stdout.write("\r" + " " * 30 + "\r")
-sys.stdout.flush()
-print(f"Pages chargées : {page - 1}")
-
-# Dictionnaire de remplacement des noms des constructeurs
-constructeurs_abreviation = {
-    "Roberts Space Industries": "RSI",
-    "Musashi Industrial and Starflight Concern": "MISC",
-    "Anvil Aerospace": "Anvil",
-    "Aegis Dynamics": "Aegis",
-    "Drake Interplanetary": "Drake",
-    "Origin Jumpworks": "Origin"
-}
-
-# Récupération des caractéristiques des vaisseaux et ajout à Notion
-for name in tqdm(all_data, desc="Chargement des spécifications des vaisseaux", unit="vaisseau(x)"):
-    if name in ["Carrack Expedition w/C8X", "Carrack w/C8X", "C8 Pisces"]:
-        continue
-
-    characteristics = get_vehicle_characteristics(name)
-    if characteristics and "data" in characteristics:
-        data = characteristics["data"]
-        
-        manufacturer = data.get("manufacturer", {}).get("name")
-        manufacturer_abbr = constructeurs_abreviation.get(manufacturer, manufacturer)
-
-        shops = data.get("shops", [])
-        buy_locations = []
-        price_auec = 0
-        for shop in shops:
-            shop_name = shop.get("name_raw", "")
-            for item in shop.get("items", []):
-                base_price = item.get("base_price", 0)
-                if price_auec == 0:
-                    price_auec = base_price
-                buy_locations.append(shop_name)
-
-        try:
-            notion.pages.create(
-                parent={"database_id": database_id},
-                properties={
-                    "Nom du vaisseau": {"title": [{"text": {"content": data.get("name", "")}}]},
-                    "Constructeur": {"rich_text": [{"text": {"content": manufacturer_abbr}}]},
-                    "HP vaisseau": {"number": data.get("health")},
-                    "HP bouclier": {"number": data.get("shield_hp")},
-                    "Cargo": {"number": data.get("cargo_capacity")},
-                    "Capa. quantum": {"number": data.get("quantum", {}).get("quantum_fuel_capacity")},
-                    "Crew": {"rich_text": [{"text": {"content": str(data.get("crew", {}).get("max", data.get("crew", {}).get("min", "/")))}}]},
-                    "Type": {"rich_text": [{"text": {"content": data.get("type", {}).get("en_EN", "")}}]},
-                    "Classe": {"rich_text": [{"text": {"content": data.get("production_status", {}).get("en_EN", "")}}]},
-                    "Size class": {"rich_text": [{"text": {"content": str(data.get("size_class", ""))}}]},
-                    "Vitesse SCM": {"number": data.get("speed", {}).get("scm")},
-                    "Vitesse NAV": {"number": data.get("speed", {}).get("max")},
-                    "Prix (aUEC)": {"number": price_auec},
-                    "Prix ($)": {"number": data.get("msrp")},
-                    "Où acheter ?": {"rich_text": [{"text": {"content": " / ".join(buy_locations)}}]},
-                    "URL": {"url": data.get("pledge_url", "")}
+def update_notion_database(headers, rows):
+    for row in rows:
+        properties = {}
+        for i, header in enumerate(headers):
+            if i < len(row):  # S'assure que l'on ne dépasse pas les données disponibles
+                properties[header] = {
+                    "rich_text": [
+                        {
+                            "text": {
+                                "content": row[i]
+                            }
+                        }
+                    ]
                 }
-            )
-        except Exception as e:
-            print(f"Erreur lors de la création de la page pour {data.get('name', '')}: {e}")
 
-print("Mise à jour de la base de données Notion terminée.")
+        # Création de la page dans la base Notion
+        notion.pages.create(
+            parent={"database_id": NOTION_DATABASE_ID},
+            properties=properties
+        )
+        time.sleep(0.3)  # Pause pour éviter de dépasser les limites d'API
+
+def main():
+    headers, rows = fetch_data_from_google_sheets()
+    update_notion_database(headers, rows)
+    print("Mise à jour de Notion terminée !")
+
+if __name__ == '__main__':
+    main()
