@@ -31,7 +31,7 @@ while True:
     all_data.extend(names)
     
     # Afficher le nombre de pages chargées sur une seule ligne
-    sys.stdout.write(f"\rPages chargées : {page}")
+    sys.stdout.write(f"\rLoaded pages : {page}")
     sys.stdout.flush()
     
     page += 1
@@ -42,7 +42,7 @@ sys.stdout.write("\r" + " " * 30 + "\r")
 sys.stdout.flush()
 
 # Afficher uniquement le total des pages chargées
-print(f"Pages chargées : {page - 1}")
+print(f"Loaded pages : {page - 1}")
 
 # Convertir en DataFrame
 ships = pd.DataFrame(all_data, columns=["name"])
@@ -56,7 +56,7 @@ vehicle_names = ships['name'].tolist()
 vehicle_data = []
 
 # Récupérer les caractéristiques des vaisseaux
-for name in tqdm(vehicle_names, desc="Loading ships specs", unit="vaisseau(x)"):
+for name in tqdm(vehicle_names, desc="Ships updating", unit="ships"):
     if name in ["Carrack Expedition w/C8X", "Carrack w/C8X", "C8 Pisces"]:
         continue
     
