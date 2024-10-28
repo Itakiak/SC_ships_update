@@ -15,7 +15,7 @@ if response.status_code == 200:
         f.write(response.content)
 
     # Récupérer et exécuter Project_Star_Citizen.py
-    response_main = requests.get(url_main_script)
+    response_main = requests.get(url)
     if response_main.status_code == 200:
         with open("temp_script.py", "w", encoding="utf-8") as file:
             file.write(response_main.text)
