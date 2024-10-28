@@ -16,7 +16,7 @@ creds = service_account.Credentials.from_service_account_file(
 sheets_service = build('sheets', 'v4', credentials=creds)
 
 # Connexion à l'API Notion
-notion = Client(auth="ton_token_notion")
+notion = Client(auth="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")
 
 def fetch_data_from_google_sheets():
     sheet = sheets_service.spreadsheets()
