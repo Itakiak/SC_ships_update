@@ -2,6 +2,7 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from notion_client import Client
 import time
+from tqdm import tqdm  # Import de tqdm pour la barre de chargement
 
 # Configuration
 SPREADSHEET_ID = '1GJH3QmXWMRwRt0_VuUA6e4C-s23h7SlibBCHXAldYGc'  # ID de Google Sheets
@@ -29,7 +30,7 @@ def fetch_data_from_google_sheets():
     return headers, rows
 
 def update_notion_database(headers, rows):
-    for row in rows:
+    for row in tqdm(rows, desc="Mise à jour de Notion", unit="page"):
         properties = {}
         for i, header in enumerate(headers):
             if i < len(row):  # S'assure que l'on ne dépasse pas les données disponibles
