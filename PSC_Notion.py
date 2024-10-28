@@ -30,26 +30,29 @@ def fetch_data_from_google_sheets():
     return headers, rows
 
 def update_notion_database(headers, rows):
-    for row in tqdm(rows, desc="Mise à jour de Notion", unit="page"):
-        properties = {}
-        for i, header in enumerate(headers):
-            if i < len(row):  # S'assure que l'on ne dépasse pas les données disponibles
-                properties[header] = {
-                    "rich_text": [
-                        {
-                            "text": {
-                                "content": row[i]
+    # Créer une barre de chargement avec tqdm
+    with tqdm(total=len(rows), desc="Importation dans Notion", unit="page") as pbar:
+        for row in rows:
+            properties = {}
+            for i, header in enumerate(headers):
+                if i < len(row):  # Vérifie si la ligne a une valeur pour cet en-tête
+                    properties[header] = {
+                        "rich_text": [
+                            {
+                                "text": {
+                                    "content": row[i]
+                                }
                             }
-                        }
-                    ]
-                }
+                        ]
+                    }
 
-        # Création de la page dans la base Notion
-        notion.pages.create(
-            parent={"database_id": NOTION_DATABASE_ID},
-            properties=properties
-        )
-        time.sleep(0.3)  # Pause pour éviter de dépasser les limites d'API
+            if properties:  # Ne crée la page que si des propriétés sont valides
+                notion.pages.create(
+                    parent={"database_id": NOTION_DATABASE_ID},
+                    properties=properties
+                )
+                pbar.update(1)  # Mettre à jour la barre de progression après chaque page créée
+            time.sleep(0.3)  # Pause pour éviter de dépasser les limites d'API
 
 def main():
     headers, rows = fetch_data_from_google_sheets()
