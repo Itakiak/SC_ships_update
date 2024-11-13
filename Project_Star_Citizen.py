@@ -10,7 +10,7 @@ import time
 with open("credentials.json", "r", encoding='utf-8') as f:
     credentials = json.load(f)
 
-base_url = "https://api.star-citizen.wiki/api/v2/vehicles?page="
+base_url = "https://api.star-citizen.wiki/api/v3/vehicles?page="
 
 # Récupérer les noms de vaisseaux
 all_data = []
