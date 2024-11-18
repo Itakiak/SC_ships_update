@@ -1,161 +1,147 @@
-import tkinter as tk
-from tkinter import filedialog
-from tkinter import ttk
-import pandas as pd
 import requests
+import os
+import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from tqdm import tqdm
 import json
-import os
 import sys
 import time
 
-# Fonction pour ouvrir le fichier Google Sheets
-def open_file():
-    file_path = filedialog.askopenfilename(title="Ouvrir un fichier", filetypes=(("CSV Files", "*.csv"), ("All Files", "*.*")))
-    if file_path:
-        print(f"Fichier ouvert : {file_path}")
+# Télécharger les credentials depuis Google Drive
+drive_file_id = "1k8k7E9fkvqtGAT9B_3WYgGwJuIKgoE7U"  # ID de ton fichier JSON
+credentials_url = f"https://drive.google.com/uc?id={drive_file_id}"
 
-# Fonction de mise à jour des vaisseaux
-def update_ships():
-    with open("credentials.json", "r", encoding='utf-8') as f:
-        credentials = json.load(f)
+response = requests.get(credentials_url)
 
-    base_url = "https://api.star-citizen.wiki/api/v3/vehicles?page="
-    all_data = []
-    page = 1
+if response.status_code == 200:
+    # Sauvegarder le fichier credentials.json
+    with open("credentials.json", "wb") as f:
+        f.write(response.content)
+else:
+    print(f"Erreur de récupération des credentials: {response.status_code}")
+    sys.exit(1)
 
-    # Initialisation des barres de progression
-    global progress_bar_1, progress_bar_2
-    progress_bar_1["value"] = 0
-    progress_bar_2["value"] = 0
-    root.update_idletasks()
+# Charger les credentials pour Google Sheets
+with open("credentials.json", "r", encoding='utf-8') as f:
+    credentials = json.load(f)
 
-    while True:
-        response = requests.get(f"{base_url}{page}")
-        
-        if response.status_code != 200:
-            break
-        
-        page_data = response.json().get("data", [])
-        
-        if not page_data:
-            break
-        
-        names = [item.get("name") for item in page_data]
-        all_data.extend(names)
-        
-        # Mise à jour de la barre de progression générale
-        progress_bar_1["value"] = (page / 50) * 100  # Supposons 50 pages max
-        progress_bar_1.update()
+base_url = "https://api.star-citizen.wiki/api/v3/vehicles?page="
 
-        page += 1
-        time.sleep(0.1)  # Petit délai pour simuler un chargement plus visible
+# Récupérer les noms de vaisseaux
+all_data = []
+page = 1
 
-    print(f"Loaded pages: {page - 1}")
+while True:
+    response = requests.get(f"{base_url}{page}")
+    
+    if response.status_code != 200:
+        break
+    
+    page_data = response.json().get("data", [])
+    
+    if not page_data:
+        break  # Arrêter si aucune donnée n'est renvoyée
 
-    # Conversion des vaisseaux en DataFrame
-    ships = pd.DataFrame(all_data, columns=["name"])
+    names = [item.get("name") for item in page_data]
+    all_data.extend(names)
+    
+    # Afficher le nombre de pages chargées sur une seule ligne
+    sys.stdout.write(f"\rLoaded pages : {page}")
+    sys.stdout.flush()
+    
+    page += 1
+    time.sleep(0.1)  # Petit délai pour simuler un chargement plus visible
 
-    vehicle_names = ships['name'].tolist()
-    vehicle_data = []
+# Effacer la ligne de progression
+sys.stdout.write("\r" + " " * 30 + "\r")
+sys.stdout.flush()
 
-    # Mise à jour des caractéristiques des vaisseaux
-    for name in tqdm(vehicle_names, desc="Mise à jour des vaisseaux", unit="vaisseaux"):
-        if name in ["Carrack Expedition w/C8X", "Carrack w/C8X", "C8 Pisces"]:
-            continue
-        
-        characteristics = get_vehicle_characteristics(name)
-        if characteristics and "data" in characteristics:
-            data = characteristics["data"]
-            vehicle_info = {
-                "Nom du vaisseau": f'=HYPERLINK("{data.get("pledge_url")}"; "{data.get("name")}")',
-                "Constructeur": data.get("manufacturer", {}).get("name"),
-                "HP vaisseau": data.get("health"),
-                "HP bouclier": data.get("shield_hp"),
-                "Cargo": data.get("cargo_capacity"),
-                "Capa. quantum": data.get("quantum", {}).get("quantum_fuel_capacity"),
-                "Crew": str(data.get("crew", {}).get("max", data.get("crew", {}).get("min", "/"))) if data.get("crew", {}).get("max") else str(data.get("crew", {}).get("min", "/")),
-                "Type": data.get("type", {}).get("en_EN"),
-                "Classe": data.get("production_status", {}).get("en_EN"),
-                "Size class": data.get("size_class"),
-                "Vitesse SCM": data.get("speed", {}).get("scm"),
-                "Vitesse NAV": data.get("speed", {}).get("max"),
-                "Prix (aUEC)": 0,
-                "Prix ($)": data.get("msrp"),
-                "Où acheter ?": [],
-            }
+# Afficher uniquement le total des pages chargées
+print(f"Loaded pages : {page - 1}")
 
-            # Parcourir les shops
-            for shop in data.get("shops", []):
-                shop_name = shop.get("name_raw", "")
-                for item in shop.get("items", []):
-                    base_price = item.get("base_price", 0)
-                    if vehicle_info["Prix (aUEC)"] == 0:  # Ne garder que le premier prix trouvé
-                        vehicle_info["Prix (aUEC)"] = base_price
-                    vehicle_info["Où acheter ?"].append(shop_name)
+# Convertir en DataFrame
+ships = pd.DataFrame(all_data, columns=["name"])
 
-            vehicle_info["Où acheter ?"] = ' / '.join(vehicle_info["Où acheter ?"])
-
-            vehicle_data.append(vehicle_info)
-
-        # Mise à jour de la barre de progression des vaisseaux
-        progress_bar_2["value"] = (vehicle_names.index(name) / len(vehicle_names)) * 100
-        progress_bar_2.update()
-
-    # Mise à jour des données dans Google Sheets
-    df = pd.DataFrame(vehicle_data)
-    df['Constructeur'] = df['Constructeur'].replace({
-        "Roberts Space Industries": "RSI",
-        "Musashi Industrial and Starflight Concern": "MISC",
-        "Anvil Aerospace": "Anvil",
-        "Aegis Dynamics": "Aegis",
-        "Drake Interplanetary": "Drake",
-        "Origin Jumpworks": "Origin"
-    })
-
-    df.fillna("/", inplace=True)
-
-    # Google Sheets config
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials, scope)
-    client = gspread.authorize(creds)
-    spreadsheet = client.open("Star citizen - ships")
-    worksheet = spreadsheet.get_worksheet(0)
-
-    data_to_insert = [df.columns.values.tolist()] + df.values.tolist()
-    worksheet.clear()
-    worksheet.update(range_name='A1', values=data_to_insert, value_input_option='USER_ENTERED')
-
-# Fonction pour récupérer les caractéristiques des vaisseaux
 def get_vehicle_characteristics(name):
     url = f"https://api.star-citizen.wiki/api/v3/vehicles/{name}?include=components,shops"
     response = requests.get(url)
     return response.json() if response.status_code == 200 else None
 
-# Création de la fenêtre principale
-root = tk.Tk()
-root.title("Mise à jour des vaisseaux Star Citizen")
-root.geometry("500x400")
+vehicle_names = ships['name'].tolist()
+vehicle_data = []
 
-# Création des barres de progression
-progress_bar_1 = ttk.Progressbar(root, orient="horizontal", length=400, mode="determinate")
-progress_bar_1.grid(row=0, column=0, padx=10, pady=10)
+# Récupérer les caractéristiques des vaisseaux
+for name in tqdm(vehicle_names, desc="Ships updating", unit="ships"):
+    if name in ["Carrack Expedition w/C8X", "Carrack w/C8X", "C8 Pisces"]:
+        continue
+    
+    characteristics = get_vehicle_characteristics(name)
+    if characteristics and "data" in characteristics:
+        data = characteristics["data"]
+        vehicle_info = {
+            "Nom du vaisseau": f'=HYPERLINK("{data.get("pledge_url")}"; "{data.get("name")}")',
+            "Constructeur": data.get("manufacturer", {}).get("name"),
+            "HP vaisseau": data.get("health"),
+            "HP bouclier": data.get("shield_hp"),
+            "Cargo": data.get("cargo_capacity"),
+            "Capa. quantum": data.get("quantum", {}).get("quantum_fuel_capacity"),
+            "Crew": str(data.get("crew", {}).get("max", data.get("crew", {}).get("min", "/"))) if data.get("crew", {}).get("max") else str(data.get("crew", {}).get("min", "/")),
+            "Type": data.get("type", {}).get("en_EN"),
+            "Classe": data.get("production_status", {}).get("en_EN"),
+            "Size class": data.get("size_class"),
+            "Vitesse SCM": data.get("speed", {}).get("scm"),
+            "Vitesse NAV": data.get("speed", {}).get("max"),
+            "Prix (aUEC)": 0,
+            "Prix ($)": data.get("msrp"),
+            "Où acheter ?": [],
+        }
 
-progress_bar_2 = ttk.Progressbar(root, orient="horizontal", length=400, mode="determinate")
-progress_bar_2.grid(row=1, column=0, padx=10, pady=10)
+        # Parcourir les shops
+        for shop in data.get("shops", []):
+            shop_name = shop.get("name_raw", "")
+            for item in shop.get("items", []):
+                base_price = item.get("base_price", 0)
+                if vehicle_info["Prix (aUEC)"] == 0:  # Ne garder que le premier prix trouvé
+                    vehicle_info["Prix (aUEC)"] = base_price
+                vehicle_info["Où acheter ?"].append(shop_name)
 
-# Ajouter un bouton pour ouvrir le fichier
-open_button = tk.Button(root, text="Ouvrir fichier", command=open_file)
-open_button.grid(row=2, column=0, pady=10)
+        # Combiner les valeurs des magasins en chaîne séparée par " / "
+        vehicle_info["Où acheter ?"] = ' / '.join(vehicle_info["Où acheter ?"])
 
-# Ajouter un bouton pour lancer la mise à jour
-update_button = tk.Button(root, text="Mettre à jour les vaisseaux", command=update_ships)
-update_button.grid(row=3, column=0, pady=10)
+        vehicle_data.append(vehicle_info)
 
-# Démarrer l'interface graphique
-root.mainloop()
+df = pd.DataFrame(vehicle_data)
 
-if os.path.exists('temp_script.py'):
-    os.remove('temp_script.py')
+# Dictionnaire de remplacement des noms des constructeurs
+constructeurs_abreviation = {
+    "Roberts Space Industries": "RSI",
+    "Musashi Industrial and Starflight Concern": "MISC",
+    "Anvil Aerospace": "Anvil",
+    "Aegis Dynamics": "Aegis",
+    "Drake Interplanetary": "Drake",
+    "Origin Jumpworks": "Origin"
+}
+
+# Remplacer les noms des constructeurs par leurs abréviations
+df['Constructeur'] = df['Constructeur'].replace(constructeurs_abreviation)
+
+# Configuration pour Google Sheets
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials, scope)
+client = gspread.authorize(creds)
+
+spreadsheet = client.open("Star citizen - ships")
+worksheet = spreadsheet.get_worksheet(0)
+
+df = df.astype(object)  # Convertir tout le DataFrame en type 'object' pour empêcher de futures erreurs
+df.fillna("/", inplace=True)
+
+data_to_insert = [df.columns.values.tolist()] + df.values.tolist()
+worksheet.clear()
+worksheet.update(range_name='A1', values=data_to_insert, value_input_option='USER_ENTERED')
+
+# Nettoyer les fichiers temporaires
+os.remove("credentials.json")
+
+print("Script executed successfully.")
