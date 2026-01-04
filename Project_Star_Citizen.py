@@ -20,7 +20,11 @@ CONSTRUCTEURS_ABREVIATION = {
     "Anvil Aerospace": "Anvil",
     "Aegis Dynamics": "Aegis",
     "Drake Interplanetary": "Drake",
-    "Origin Jumpworks": "Origin"
+    "Origin Jumpworks": "Origin",
+    "Greycat Industrial": "Greycat",
+    "Argo Astronautics": "Argo",
+    "Tumbril Land Systems": "Tumbril",
+    "Gatac Manufacture": "Gatac"
 }
 
 def get_all_ship_names():
